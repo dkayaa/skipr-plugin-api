@@ -1,16 +1,17 @@
 # Skipr — Go-Live Plan
 
-Roadmap to take Skipr from a working dev stack to something you can run live. The server v2 backend is largely done; the gaps are client integration, hosting, and ops.
+Roadmap to take Skipr from a working dev stack to something you can run live. The server v2 backend is largely done; the gaps are client integration, production ops, and hardening.
 
 **Current state (baseline)**
 
 | Layer | Status |
 |-------|--------|
 | API + ML + DB | Implemented (`/api/v2/timestamps`, async polling, SQLAlchemy cache, Alembic) |
-| skipr-plugin | Removed from this repo (`d75689a`); last version predates v2 polling |
-| Deployment | Dev-only: `flask run` + serveo SSH tunnel |
-| CI, auth, monitoring | Missing |
-| Tests | 4 ML failures (`min_duration=20` vs test expectations) + 1 store error without SQLAlchemy in host venv |
+| skipr-plugin | Separate repo — [skipr-plugin-browser](https://github.com/dkayaa/skipr-plugin-browser); must be updated for v2 polling |
+| Deployment | `./run.sh api-dev` / `api-prod`; DigitalOcean guide in `deploy/digitalocean.md` |
+| CI | `.github/workflows/ci.yml` — autopep8, mypy, unit tests, Bruno smoke integration tests |
+| Unit tests | Passing via `./run.sh unit-tests` |
+| Auth, monitoring | Not implemented |
 
 ---
 
@@ -20,15 +21,15 @@ Goal: you and a few friends can use Skipr against a stable HTTPS API.
 
 ### 1.1 Update skipr-plugin for v2
 
-skipr-plugin lives in a **separate repo**. The last in-repo version is incompatible with the current API.
+skipr-plugin lives in a **separate repo**. The last in-repo version (`d75689a`) predates v2 polling.
 
 - [ ] **Poll on `pending`** — first request returns `202` + `{"status": "pending"}`; retry until `ready` or `failed`
-- [ ] **Parse v2 response** — use `data.intervals`, not the whole response object
-- [ ] **Handle `failed`** — show/log `data.error`; optionally offer retry with `?retry=1`
+- [ ] **Parse v2 response** — use `intervals`, not the whole response object
+- [ ] **Handle `failed`** — show/log `error`; optionally offer retry with `?retry=1`
 - [ ] **Fix skip loop** — remove `timestamps.length - 1` off-by-one (last interval was skipped)
 - [ ] **URL parsing** — support `youtu.be`, `/shorts/`, `/embed/` (server already does via `youtube_url.py`)
 - [ ] **Tighter skip check** — reduce 5s interval or use `timeupdate` / `requestAnimationFrame` so short ad windows aren't missed
-- [ ] **Point skipr-plugin at production URL** — stable HTTPS host, not serveo
+- [ ] **Point skipr-plugin at production URL** — stable HTTPS host
 
 **v2 contract reference**
 
@@ -39,7 +40,7 @@ skipr-plugin lives in a **separate repo**. The last in-repo version is incompati
 | `failed` | 200 | `{"status": "failed", "error": "..."}` |
 | Bad URL | 400 | `{"error": "..."}` |
 
-### 1.2 Deploy the server for real (not serveo)
+### 1.2 Deploy the server for real
 
 **Host: DigitalOcean Droplet** — see `deploy/digitalocean.md`
 
@@ -50,7 +51,8 @@ skipr-plugin lives in a **separate repo**. The last in-repo version is incompati
 - [x] Inject secrets via `.env` (gitignored); see `.env.example`
 - [x] Add `.env.example` documenting: `DB_*`, `HUGGINGFACE_MODEL`, `CORS_ORIGINS`, `CLASSIFIER_BATCH_SIZE`, `DOMAIN`
 - [x] Restrict MySQL port — localhost only in dev; no public port in prod overlay (compose MySQL on same machine)
-- [ ] Provision Droplet, domain DNS, firewall, and run `docker compose ... up` on the server
+- [x] Repo entrypoint: `./run.sh api-dev` / `api-prod`
+- [ ] Provision Droplet, domain DNS, firewall, and run `./run.sh api-prod` on the server
 
 ### 1.3 Harden job lifecycle (single-server beta)
 
@@ -77,12 +79,14 @@ API is fully public today.
 - [x] Add DB `healthcheck` in `docker-compose.yml` so app doesn't race cold-start MySQL
 - [ ] Optional: extend `/health` to verify models loaded
 
-### 1.6 Fix tests and add CI
+### 1.6 Tests and CI
 
-- [ ] Align `tests/server/ml/test_transcript_labelling.py` with `min_duration=20` in `compute_intervals` (update tests or threshold — decide intentionally)
-- [ ] Add `tests/server/api/` — Flask test client for `202`/`200`/`400`, v2 response shape, CORS
-- [ ] Add `.github/workflows/` — run tests in Docker (ML modules load HF models at import time)
-- [ ] CI fails on regressions before merge
+- [x] Unit tests under `tests/` — `./run.sh unit-tests`
+- [x] Bruno integration smoke tests — `integration_tests/` via `./run.sh integration-tests`
+- [x] Static checks — `./run.sh mypy`, `./run.sh autopep8-check`
+- [x] GitHub Actions — `.github/workflows/ci.yml`
+- [ ] Add Flask unit tests for `/api/v2/timestamps` (`202`/`200`/`400`, response shape, CORS)
+- [ ] Decide production `min_duration` for `compute_intervals` vs test expectations (tests use `min_duration=0`; production default is 45)
 
 **Phase 1 done when:** skipr-plugin polls v2, skips ads on real videos, server runs on HTTPS with gunicorn, health check passes, CI green.
 
@@ -92,12 +96,11 @@ API is fully public today.
 
 Goal: strangers can install and use Skipr without you hand-holding.
 
-### 2.1 Firefox Add-ons distribution
+### 2.1 Browser extension distribution
 
-- [ ] AMO signing / store listing
+- [ ] AMO / Chrome Web Store listing (or documented sideload path)
 - [ ] Privacy policy (video URLs sent to your server; what you store/cache)
 - [ ] Evaluate Manifest V2 → MV3 migration
-- [ ] Update README — link skipr-plugin repo, remove serveo-only instructions for production path
 
 ### 2.2 Observability
 
@@ -110,6 +113,7 @@ Goal: strangers can install and use Skipr without you hand-holding.
 - [ ] Bake Hugging Face models into Docker image or persistent volume (avoid cold-start downloads)
 - [ ] Decide CPU vs GPU for cost/latency; enable GPU compose profile if needed
 - [ ] Multi-stage Docker build to trim image size where possible
+- [ ] Split runtime vs dev dependencies further (`onnx` / `pytorch` extras for lean prod images)
 
 ### 2.4 Scaling (when single-server isn't enough)
 
@@ -117,7 +121,7 @@ Goal: strangers can install and use Skipr without you hand-holding.
 - [ ] Move `_active_jobs` dedup to DB or Redis
 - [ ] Multiple replicas behind load balancer (only after queue is in place)
 
-**Phase 2 done when:** AMO-listed extension, monitoring in place, abuse protection tested under load.
+**Phase 2 done when:** store-listed extension, monitoring in place, abuse protection tested under load.
 
 ---
 
@@ -127,9 +131,9 @@ Not blockers for beta or initial launch.
 
 - [ ] Use `transcript_hash` for cache invalidation when YouTube transcript changes (model/pipeline version already triggers recompute)
 - [ ] OpenAPI / formal API docs for client implementers
-- [ ] Remove unused `Authlib` from `requirements.txt`
-- [ ] `tests/skipr-plugin/` once skipr-plugin is back in-repo or tested in its own repo
+- [x] Remove unused `Authlib` from dependencies (`pyproject.toml`)
 - [ ] Global `@app.errorhandler` for JSON 500s instead of Flask HTML
+- [ ] Remove debug `/api/test` route if no longer needed
 
 ---
 
@@ -137,12 +141,12 @@ Not blockers for beta or initial launch.
 
 ```
 skipr-plugin v2 integration
-    → Deploy (gunicorn + TLS + real DB)
+    → Deploy (./run.sh api-prod on Droplet)
         → Single worker + stale pending recovery
             → Rate limit + /health
-                → Fix tests + CI
-                    → [beta] share temp add-on with prod URL
-                        → [public] AMO + monitoring + model bake-in
+                → API route unit tests
+                    → [beta] share extension with prod URL
+                        → [public] store listing + monitoring + model bake-in
 ```
 
 ---
@@ -151,11 +155,13 @@ skipr-plugin v2 integration
 
 | Task | Primary files |
 |------|----------------|
-| skipr-plugin v2 | skipr-plugin repo (`processor.js`, `manifest.json`, `popup.js`) |
-| Production server | `server/entrypoint.sh`, `server/Dockerfile`, `server/docker-compose.yml` |
+| skipr-plugin v2 | [skipr-plugin-browser](https://github.com/dkayaa/skipr-plugin-browser) repo |
+| Local / prod stacks | `run.sh`, `server/docker-compose*.yml` |
+| Production server | `server/entrypoint.sh`, `server/Dockerfile`, `deploy/digitalocean.md` |
 | Job lifecycle | `server/backend/analysis_runner.py`, `server/backend/interval_store.py` |
 | Health | `server/app.py` |
 | Rate limiting | `server/app.py` (or middleware) |
 | Config docs | `server/.env.example`, `README.md` |
-| Tests | `tests/server/ml/test_transcript_labelling.py`, new `tests/server/api/` |
-| CI | `.github/workflows/test.yml` |
+| Unit tests | `tests/` |
+| Integration tests | `integration_tests/` |
+| CI | `.github/workflows/ci.yml` |

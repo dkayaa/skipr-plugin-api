@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: server/requirements.txt
+          cache-dependency-path: pyproject.toml
 
       - name: Check formatting
         run: ./run.sh autopep8-check
@@ -35,7 +35,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: server/requirements.txt
+          cache-dependency-path: pyproject.toml
 
       - name: Type check
         run: ./run.sh mypy
@@ -50,7 +50,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: server/requirements.txt
+          cache-dependency-path: pyproject.toml
           
       - name: Prepare environment
         run: cp server/.env.example server/.env

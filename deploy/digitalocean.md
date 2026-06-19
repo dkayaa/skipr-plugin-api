@@ -89,8 +89,10 @@ Do **not** set `DB_HOST` or `DB_PORT` in `.env` — compose pins `DB_HOST=db` an
 
 ## 4. Start production stack
 
+From repo root:
+
 ```bash
-docker compose -f docker-compose.db.yml -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+./run.sh api-prod
 ```
 
 This starts all three services: **db**, **app**, **caddy**.
@@ -98,6 +100,7 @@ This starts all three services: **db**, **app**, **caddy**.
 First boot downloads ML models and can take several minutes:
 
 ```bash
+cd server
 docker compose -f docker-compose.db.yml -f docker-compose.yml -f docker-compose.prod.yml logs -f app
 ```
 
@@ -120,8 +123,7 @@ Point skipr-plugin at `https://api.yourdomain.com` (no trailing slash).
 ```bash
 cd /opt/skipr
 git pull
-cd server
-docker compose -f docker-compose.db.yml -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+./run.sh api-prod
 ```
 
 Migrations run automatically via `entrypoint.sh` on container start.

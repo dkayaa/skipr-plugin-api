@@ -5,15 +5,18 @@ alwaysApply: true
 
 # Skipr agent guide
 
-Skipr detects in-video ad reads on YouTube. The skipr-plugin Firefox extension calls a Flask API; the server fetches transcripts, classifies chunks with DistilBERT, and returns skip timestamps/intervals.
+Skipr detects in-video ad reads on YouTube. The [skipr-plugin](https://github.com/dkayaa/skipr-plugin-browser) browser extension calls this Flask API; the server fetches transcripts, classifies chunks with DistilBERT, and returns skip timestamps/intervals.
 
 ```
-skipr-plugin/         Firefox extension (client)
 server/               Flask API, ML pipeline, database
 server/backend/       SQLAlchemy models + data access (v2)
 server/migrations/    Alembic schema revisions
-tests/                All tests (never colocate under server/ or skipr-plugin/)
+tests/                Python unit tests
+integration_tests/    Bruno HTTP integration tests (black-box E2E)
+run.sh                Repo entrypoint for stacks, tests, and lint
 ```
+
+The browser extension lives in a **separate repo** — not in this codebase.
 
 ## Tests
 
@@ -22,9 +25,8 @@ tests/                All tests (never colocate under server/ or skipr-plugin/)
   - `tests/server/utils/` — URL parsing, helpers
   - `tests/server/backend/` — stores, models, persistence
   - `tests/server/api/` — Flask routes and request/response
-  - `tests/skipr-plugin/` — extension scripts
+- Add HTTP integration tests under `integration_tests/` (Bruno `.bru` files).
 - Use `tests/support/path.py` to import from `server/`; do not duplicate path hacks in each file.
-- Run from repo root: `PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py"`
 
 ### Run tests on code changes
 
@@ -32,11 +34,11 @@ After any code change, run the matching test suite before finishing. Fix failure
 
 | Changed area | Command |
 |---|---|
-| Any server change (default) | `PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py"` |
+| Any server change (default) | `./run.sh unit-tests` |
 | `server/transcript_labelling.py`, `server/org_extractor.py` | `PYTHONPATH=. python -m unittest discover -s tests/server/ml -p "test_*.py"` |
 | `server/youtube_url.py`, `server/app.py` (validation) | `PYTHONPATH=. python -m unittest discover -s tests/server/utils -p "test_*.py"` |
 | `server/backend/` | `PYTHONPATH=. python -m unittest discover -s tests/server/backend -p "test_*.py"` |
-| `skipr-plugin/` | `PYTHONPATH=. python -m unittest discover -s tests/skipr-plugin -p "test_*.py"` |
+| API HTTP / E2E | `./run.sh api-dev` then `./run.sh integration-tests` |
 
 If you add or modify behavior, add or update tests in the matching `tests/` subfolder in the same change.
 
@@ -65,6 +67,8 @@ After Python changes, run mypy and autopep8 from repo root. Fix any failures cau
 - **ML**: `transcript_labelling.py` (batched DistilBERT, NER on ad windows only), `org_extractor.py`. Models load at import time; auto-selects CUDA/MPS/CPU.
 - **Schema**: Alembic is source of truth. Add migrations in `server/migrations/versions/`; do not define tables in `initdb/schema.sql`.
 - **Startup**: `entrypoint.sh` → `alembic upgrade head` → `gunicorn`.
+- **Local dev stack**: `./run.sh api-dev` (db + app on http://127.0.0.1:8090).
+- **Dependencies**: `pyproject.toml` at repo root; runtime deps in `[project]`, dev tools in `[project.optional-dependencies].dev`. `./run.sh` installs `.[dev]` into `server/.venv`.
 
 ## Coding requirements
 

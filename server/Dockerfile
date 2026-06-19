@@ -2,13 +2,13 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY . .
+COPY pyproject.toml /tmp/pyproject.toml
+RUN pip install --no-cache-dir /tmp/pyproject.toml
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY server/ .
 
 RUN chmod +x entrypoint.sh
 
-# Expose the port (optional, for documentation and inter-container communication)
 EXPOSE 8090
 
 CMD ["./entrypoint.sh"]

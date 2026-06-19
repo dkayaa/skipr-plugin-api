@@ -109,7 +109,7 @@ ensure_venv() {
   # shellcheck disable=SC1091
   source "${venv_dir}/bin/activate"
   echo "Installing dependencies..."
-  pip install -q -r "${SERVER_DIR}/requirements.txt"
+  pip install -q -e "${ROOT_DIR}[dev]"
 }
 
 run_unit_tests() {
