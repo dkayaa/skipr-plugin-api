@@ -1,4 +1,4 @@
-# skipr-plugin-backend
+# skipr-plugin Backend
 
 ## What ?
 Skipr-plugin is a browser extension that uses AI text classification to detect and scrub content from Youtube videos in real-time. 
