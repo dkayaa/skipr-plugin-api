@@ -21,7 +21,8 @@ class TestHealth(unittest.TestCase):
 
     @patch("app.get_session")
     def test_health_db_error(self, mock_get_session):
-        mock_get_session.return_value.execute.side_effect = RuntimeError("db down")
+        mock_get_session.return_value.execute.side_effect = RuntimeError(
+            "db down")
         response = self.client.get("/health")
         self.assertEqual(response.status_code, 503)
         body = response.get_json()

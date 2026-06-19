@@ -201,7 +201,6 @@ class TestTranscriptLabelling(unittest.TestCase):
 
         self.assertEqual(compute_intervals(input, min_duration=0), expected)
 
-
     def test_trailing_ad_without_closing_zero_is_skipped(self):
         input = [{
             'start': 10,

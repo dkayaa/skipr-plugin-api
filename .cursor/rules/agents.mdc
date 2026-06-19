@@ -45,18 +45,18 @@ If you add or modify behavior, add or update tests in the matching `tests/` subf
 
 ### Static checks
 
-After Python changes, run pylint and mypy from repo root. Fix any failures caused by your change before finishing.
+After Python changes, run mypy and autopep8 from repo root. Fix any failures caused by your change before finishing.
 
-**pylint** (PEP 8, excluding line-length `E501`):
+**autopep8** (PEP 8 formatting):
 
 ```bash
-pylint --disable=E501 server/ tests/
+./run.sh autopep8-check
 ```
 
 **mypy** (typing / static analysis):
 
 ```bash
-PYTHONPATH=server mypy server/ tests/
+./run.sh mypy
 ```
 
 ## Architecture
@@ -79,7 +79,7 @@ PYTHONPATH=server mypy server/ tests/
 - **Logging**: when adding or touching key control flows (API routes, store decisions, background jobs, pipeline steps), add `info` / `warning` / `error` logs as appropriate. Use `logging.getLogger(__name__)`; do not use `print`.
 - **New functions require unit tests** in the matching `tests/` subfolder.
 - Always run the relevant test suite after code changes (see **Run tests on code changes**); all tests must pass.
-- Run pylint and mypy after Python changes (see **Static checks**); fix violations caused by your change.
+- Run mypy and autopep8 after Python changes (see **Static checks**); fix violations caused by your change.
 - Never commit `.env`, credentials, or tokens.
 - Do not commit, push, or amend unless the user explicitly asks.
 
@@ -94,7 +94,7 @@ PYTHONPATH=server mypy server/ tests/
 - [ ] Key control flows touched include appropriate `info` / `warning` / `error` logs
 - [ ] New functions have unit tests under `tests/` in the correct subfolder
 - [ ] Relevant test suite run and all tests passing
-- [ ] `pylint --disable=E501 server/ tests/` passes (or only pre-existing failures explained)
-- [ ] `PYTHONPATH=server mypy server/ tests/` passes (or only pre-existing failures explained)
+- [ ] `./run.sh autopep8-check` passes (or only pre-existing failures explained)
+- [ ] `./run.sh mypy` passes (or only pre-existing failures explained)
 
 When unsure, read `app.py`, `server/backend/`, and `transcript_labelling.py` first.

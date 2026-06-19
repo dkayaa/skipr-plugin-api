@@ -37,7 +37,7 @@ def _build_windows(fetched_transcript) -> list[tuple[str, float]]:
     windows = []
     for index in range(0, len(fetched_transcript) - WINDOW_SIZE, STRIDE):
         segment_text = " ".join(
-            snippet.text for snippet in fetched_transcript[index : index + WINDOW_SIZE]
+            snippet.text for snippet in fetched_transcript[index: index + WINDOW_SIZE]
         )
         segment_start = fetched_transcript[index].start
         windows.append((segment_text, segment_start))
@@ -80,7 +80,8 @@ def get_labelled_tscript(video_id: str) -> list[dict]:
 
     segments = []
     for (segment_text, segment_start), predicted_class in zip(windows, labels):
-        orgs = _orgs_for_ad_window(segment_text) if predicted_class == 1 else []
+        orgs = _orgs_for_ad_window(
+            segment_text) if predicted_class == 1 else []
         segments.append(
             {
                 "text": segment_text,

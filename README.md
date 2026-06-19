@@ -31,6 +31,8 @@ Copy `server/.env.example` to `server/.env`, then use `./run.sh`:
 | `./run.sh api-prod` | Prod stack in Docker (db + app + caddy) |
 | `./run.sh unit-tests` | Python unit tests (`tests/`) |
 | `./run.sh integration-tests` | Bruno smoke tests (API must be running) |
+| `./run.sh mypy` | Static type checks |
+| `./run.sh autopep8-check` | PEP 8 formatting check |
 
 `./run.sh --help` for all options.
 

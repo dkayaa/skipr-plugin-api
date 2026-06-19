@@ -22,7 +22,8 @@ def get_engine():
     global _engine, db_session
     if _engine is None:
         _engine = create_engine(build_database_url(), pool_pre_ping=True)
-        db_session = scoped_session(sessionmaker(bind=_engine, autocommit=False, autoflush=False))
+        db_session = scoped_session(sessionmaker(
+            bind=_engine, autocommit=False, autoflush=False))
     return _engine
 
 

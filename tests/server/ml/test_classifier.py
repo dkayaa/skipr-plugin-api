@@ -47,7 +47,8 @@ class TestClassifier(unittest.TestCase):
             classifier = load_classifier()
 
         self.assertIs(classifier, expected)
-        mock_load_onnx.assert_called_once_with("kayaaaa/ad-classifier-quantised")
+        mock_load_onnx.assert_called_once_with(
+            "kayaaaa/ad-classifier-quantised")
 
     def test_predict_batches_inputs(self):
         batch_sizes = []

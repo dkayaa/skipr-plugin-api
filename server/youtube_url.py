@@ -43,7 +43,7 @@ def _extract_video_id(host: str, path: str, query: str) -> str | None:
 
     for prefix in ("/embed/", "/v/", "/shorts/"):
         if path.startswith(prefix):
-            return _first_path_segment(path[len(prefix) :])
+            return _first_path_segment(path[len(prefix):])
 
     return None
 

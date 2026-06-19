@@ -30,7 +30,8 @@ class IntervalStore:
         retry: bool = False,
     ) -> dict:
         current_model = get_model_version()
-        video = self._session.scalar(select(Video).where(Video.video_id == video_id))
+        video = self._session.scalar(
+            select(Video).where(Video.video_id == video_id))
 
         if video is not None and self._has_cached_intervals(video):
             if not self._needs_recompute(video, current_model):
@@ -78,16 +79,18 @@ class IntervalStore:
                 "Pending row without active job; restarting analysis video_id=%s",
                 video_id,
             )
-            self._mark_pending(video)
+            self._mark_pending(video, video_id)
             start_analysis_job(video_id, compute_analysis)
             return self._status_pending()
 
         if video is None:
-            logger.info("Starting analysis for new video video_id=%s", video_id)
+            logger.info(
+                "Starting analysis for new video video_id=%s", video_id)
         elif retry and video.status == STATUS_FAILED:
             logger.info("Retrying failed analysis video_id=%s", video_id)
         else:
-            logger.info("Starting analysis video_id=%s status=%s", video_id, video.status)
+            logger.info("Starting analysis video_id=%s status=%s",
+                        video_id, video.status)
 
         self._mark_pending(video, video_id)
         start_analysis_job(video_id, compute_analysis)

@@ -34,7 +34,7 @@ class Classifier:
     def predict(self, texts: list[str]) -> list[int]:
         labels: list[int] = []
         for index in range(0, len(texts), self.batch_size):
-            batch_texts = texts[index : index + self.batch_size]
+            batch_texts = texts[index: index + self.batch_size]
             if self.backend == "pytorch":
                 labels.extend(self._predict_pytorch(batch_texts))
             else:

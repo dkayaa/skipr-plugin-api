@@ -29,6 +29,8 @@ Commands:
   api-prod            Start prod stack (db + app + caddy)
   unit-tests          Run Python unit tests (tests/)
   integration-tests   Run Bruno integration tests (integration_tests/)
+  mypy                Run mypy static type checks
+  autopep8-check      Fail if Python files need autopep8 formatting
 
 Options:
   --clear-volumes, -V   Remove Docker volumes before starting api-dev/api-prod
@@ -41,6 +43,8 @@ Examples:
   ./run.sh api-prod -V
   ./run.sh unit-tests
   ./run.sh integration-tests --tags smoke
+  ./run.sh mypy
+  ./run.sh autopep8-check
 EOF
 }
 
@@ -90,7 +94,7 @@ start_api_prod() {
   echo "Prod stack started (Caddy TLS on ports 80/443)."
 }
 
-run_unit_tests() {
+ensure_venv() {
   local python="${PYTHON:-python3.11}"
   if ! command -v "${python}" &>/dev/null; then
     python=python3
@@ -106,12 +110,35 @@ run_unit_tests() {
   source "${venv_dir}/bin/activate"
   echo "Installing dependencies..."
   pip install -q -r "${SERVER_DIR}/requirements.txt"
+}
 
+run_unit_tests() {
+  ensure_venv
   echo "Running unit tests..."
   (
     cd "${ROOT_DIR}"
     PYTHONPATH=. python -m unittest discover -s tests -p "test_*.py"
   )
+}
+
+run_mypy() {
+  ensure_venv
+  echo "Running mypy..."
+  (
+    cd "${ROOT_DIR}"
+    PYTHONPATH=server mypy server/ tests/ --exclude 'server/migrations/'
+  )
+}
+
+run_autopep8_check() {
+  ensure_venv
+  echo "Checking autopep8 formatting..."
+  autopep8 \
+    --recursive \
+    --diff \
+    --exit-code \
+    --exclude=.venv \
+    server/ tests/
 }
 
 wait_for_health() {
@@ -199,6 +226,12 @@ case "${COMMAND}" in
     ;;
   integration-tests)
     run_integration_tests
+    ;;
+  mypy)
+    run_mypy
+    ;;
+  autopep8-check)
+    run_autopep8_check
     ;;
   -h|--help|help)
     usage

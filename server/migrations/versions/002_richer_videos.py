@@ -30,20 +30,27 @@ def upgrade() -> None:
     if "status" not in video_columns:
         op.add_column(
             "videos",
-            sa.Column("status", sa.String(length=20), server_default="pending", nullable=False),
+            sa.Column("status", sa.String(length=20),
+                      server_default="pending", nullable=False),
         )
     if "model_version" not in video_columns:
-        op.add_column("videos", sa.Column("model_version", sa.String(length=255), nullable=True))
+        op.add_column("videos", sa.Column("model_version",
+                      sa.String(length=255), nullable=True))
     if "pipeline_version" not in video_columns:
-        op.add_column("videos", sa.Column("pipeline_version", sa.String(length=50), nullable=True))
+        op.add_column("videos", sa.Column("pipeline_version",
+                      sa.String(length=50), nullable=True))
     if "transcript_hash" not in video_columns:
-        op.add_column("videos", sa.Column("transcript_hash", sa.String(length=64), nullable=True))
+        op.add_column("videos", sa.Column("transcript_hash",
+                      sa.String(length=64), nullable=True))
     if "intervals_json" not in video_columns:
-        op.add_column("videos", sa.Column("intervals_json", sa.JSON(), nullable=True))
+        op.add_column("videos", sa.Column(
+            "intervals_json", sa.JSON(), nullable=True))
     if "computed_at" not in video_columns:
-        op.add_column("videos", sa.Column("computed_at", sa.DateTime(), nullable=True))
+        op.add_column("videos", sa.Column(
+            "computed_at", sa.DateTime(), nullable=True))
     if "error_message" not in video_columns:
-        op.add_column("videos", sa.Column("error_message", sa.Text(), nullable=True))
+        op.add_column("videos", sa.Column(
+            "error_message", sa.Text(), nullable=True))
 
     if "intervals" in inspector.get_table_names():
         rows = bind.execute(
@@ -85,7 +92,8 @@ def upgrade() -> None:
 
         foreign_keys = inspector.get_foreign_keys("intervals")
         for foreign_key in foreign_keys:
-            op.drop_constraint(foreign_key["name"], "intervals", type_="foreignkey")
+            op.drop_constraint(
+                foreign_key["name"], "intervals", type_="foreignkey")
         op.drop_table("intervals")
 
 
@@ -99,19 +107,24 @@ def downgrade() -> None:
             sa.Column("pk", sa.Integer(), autoincrement=True, nullable=False),
             sa.Column("start_time", sa.Float(), nullable=False),
             sa.Column("end_time", sa.Float(), nullable=False),
-            sa.Column("orgs", sa.String(length=1000), server_default="", nullable=True),
+            sa.Column("orgs", sa.String(length=1000),
+                      server_default="", nullable=True),
             sa.Column("video_fk", sa.Integer(), nullable=False),
-            sa.Column("created_at", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=True),
+            sa.Column("created_at", sa.DateTime(), server_default=sa.text(
+                "CURRENT_TIMESTAMP"), nullable=True),
             sa.ForeignKeyConstraint(["video_fk"], ["videos.pk"]),
             sa.PrimaryKeyConstraint("pk"),
         )
-        op.create_index("ix_intervals_video_fk", "intervals", ["video_fk"], unique=False)
+        op.create_index("ix_intervals_video_fk", "intervals",
+                        ["video_fk"], unique=False)
 
         videos = bind.execute(
-            sa.text("SELECT pk, intervals_json FROM videos WHERE intervals_json IS NOT NULL")
+            sa.text(
+                "SELECT pk, intervals_json FROM videos WHERE intervals_json IS NOT NULL")
         ).fetchall()
         for video_pk, intervals_json in videos:
-            intervals = json.loads(intervals_json) if isinstance(intervals_json, str) else intervals_json
+            intervals = json.loads(intervals_json) if isinstance(
+                intervals_json, str) else intervals_json
             for item in intervals:
                 bind.execute(
                     sa.text(

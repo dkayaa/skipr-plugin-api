@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  autopep8:
+    name: autopep8
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: server/requirements.txt
+
+      - name: Check formatting
+        run: ./run.sh autopep8-check
+
+  mypy:
+    name: mypy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: server/requirements.txt
+
+      - name: Type check
+        run: ./run.sh mypy
+
+  unit-tests:
+    name: unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: server/requirements.txt
+
+      - name: Run unit tests
+        run: ./run.sh unit-tests
+
+  integration-tests:
+    name: integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Prepare environment
+        run: cp server/.env.example server/.env
+
+      - name: Start dev stack
+        run: ./run.sh api-dev --clear-volumes
+
+      - name: Run Bruno smoke tests
+        run: ./run.sh integration-tests --tags smoke
+
+      - name: Stop stack
+        if: always()
+        run: |
+          cd server
+          docker compose \
+            -f docker-compose.db.yml \
+            -f docker-compose.db.dev.yml \
+            -f docker-compose.yml \
+            -f docker-compose.dev.yml \
+            down -v --remove-orphans

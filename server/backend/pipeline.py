@@ -20,7 +20,8 @@ def get_model_version() -> str:
 def hash_segments(segments: list[dict]) -> str | None:
     if not segments:
         return None
-    payload = json.dumps([(s["start"], s["text"]) for s in segments], sort_keys=True)
+    payload = json.dumps([(s["start"], s["text"])
+                         for s in segments], sort_keys=True)
     return hashlib.sha256(payload.encode()).hexdigest()[:16]
 
 

@@ -40,7 +40,8 @@ class TestIntervalStore(unittest.TestCase):
             status=STATUS_READY,
             model_version=TEST_MODEL,
             pipeline_version=PIPELINE_VERSION,
-            intervals_json=[{"start_time": 10, "end_time": 60, "orgs": ["Acme"]}],
+            intervals_json=[
+                {"start_time": 10, "end_time": 60, "orgs": ["Acme"]}],
         )
         self.session.add(video)
         self.session.commit()
@@ -49,18 +50,21 @@ class TestIntervalStore(unittest.TestCase):
     @patch("backend.interval_store.start_analysis_job")
     @patch("backend.interval_store.is_analysis_active", return_value=False)
     def test_request_intervals_returns_pending_for_new_video(self, _mock_active, mock_start):
-        result = self.store.request_intervals("dQw4w9WgXcQ", lambda: {"intervals": []})
+        result = self.store.request_intervals(
+            "dQw4w9WgXcQ", lambda: {"intervals": []})
 
         self.assertEqual(result, {"status": STATUS_PENDING})
         mock_start.assert_called_once()
-        video = self.session.query(Video).filter_by(video_id="dQw4w9WgXcQ").one()
+        video = self.session.query(Video).filter_by(
+            video_id="dQw4w9WgXcQ").one()
         self.assertEqual(video.status, STATUS_PENDING)
 
     @patch("backend.interval_store.start_analysis_job")
     def test_request_intervals_returns_ready_for_cached_video(self, mock_start):
         self._ready_video()
 
-        result = self.store.request_intervals("dQw4w9WgXcQ", lambda: {"intervals": []})
+        result = self.store.request_intervals(
+            "dQw4w9WgXcQ", lambda: {"intervals": []})
 
         self.assertEqual(result["status"], STATUS_READY)
         self.assertEqual(
@@ -81,7 +85,8 @@ class TestIntervalStore(unittest.TestCase):
         self.session.add(video)
         self.session.commit()
 
-        result = self.store.request_intervals("dQw4w9WgXcQ", lambda: {"intervals": []})
+        result = self.store.request_intervals(
+            "dQw4w9WgXcQ", lambda: {"intervals": []})
 
         self.assertEqual(
             result,
@@ -118,7 +123,8 @@ class TestIntervalStore(unittest.TestCase):
         self.session.add(video)
         self.session.commit()
 
-        result = self.store.request_intervals("dQw4w9WgXcQ", lambda: {"intervals": []})
+        result = self.store.request_intervals(
+            "dQw4w9WgXcQ", lambda: {"intervals": []})
 
         self.assertEqual(result, {"status": STATUS_PENDING})
         mock_start.assert_not_called()
