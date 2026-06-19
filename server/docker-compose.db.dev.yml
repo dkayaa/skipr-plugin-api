@@ -1,4 +1,4 @@
-# Publish MySQL on localhost for native app dev (run.sh) or host-side mysql client.
+# Publish MySQL on localhost for host-side mysql client or docker-compose.db.dev.yml.
 # Not used in production.
 
 services:

@@ -1,0 +1,26 @@
+meta {
+  name: Invalid link
+  type: http
+  seq: 2
+  tags: [
+    smoke
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/v2/timestamps
+}
+
+params:query {
+  link: not-a-valid-url
+}
+
+tests {
+  test("returns 400", function() {
+    expect(res.status).to.equal(400);
+  });
+
+  test("returns error message", function() {
+    expect(res.body).to.have.property("error");
+  });
+}

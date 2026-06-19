@@ -138,16 +138,16 @@ Cheaper alternatives: Hetzner CPX31 (8 GB) ~€15/mo with the same compose setup
 
 ## Local dev
 
+From repo root:
+
 ```bash
-cd server
-cp .env.example .env
-docker compose -f docker-compose.db.yml -f docker-compose.db.dev.yml -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+cp server/.env.example server/.env
+./run.sh api-dev
 # App: http://127.0.0.1:8090
-# MySQL: 127.0.0.1:3306 (localhost only)
+# MySQL: 127.0.0.1:3306 (localhost only, via docker-compose.db.dev.yml)
 ```
 
-`./run.sh` runs the app on the host with only the DB in Docker — not production.
-
 ```bash
+cd server
 docker compose -f docker-compose.db.yml exec db mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" skipr_db > backup.sql
 ```

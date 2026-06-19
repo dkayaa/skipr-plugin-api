@@ -1,0 +1,47 @@
+meta {
+  name: Start timestamps analysis
+  type: http
+  seq: 1
+  tags: [
+    e2e
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/v2/timestamps
+}
+
+params:query {
+  link: {{testVideoUrl}}
+}
+
+script:post-response {
+  bru.deleteVar("pollAttempt");
+
+  if (res.status === 202 && res.body.status === "pending") {
+    bru.setNextRequest("Poll timestamps");
+    return;
+  }
+
+  if (res.status === 200 && res.body.status === "ready") {
+    return;
+  }
+
+  if (res.status === 200 && res.body.status === "failed") {
+    throw new Error("Analysis failed on start: " + (res.body.error || "unknown"));
+  }
+
+  throw new Error(
+    "Unexpected start response: " + res.status + " " + JSON.stringify(res.body)
+  );
+}
+
+tests {
+  test("accepts request", function() {
+    expect(res.status).to.be.oneOf([200, 202]);
+  });
+
+  test("returns known status", function() {
+    expect(res.body.status).to.be.oneOf(["pending", "ready"]);
+  });
+}

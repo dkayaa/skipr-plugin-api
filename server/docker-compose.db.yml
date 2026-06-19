@@ -1,6 +1,6 @@
 # MySQL only. Merge with docker-compose.yml for the full stack.
 #
-# DB only (native app via run.sh):
+# DB only (published on localhost via docker-compose.db.dev.yml):
 #   docker compose -f docker-compose.db.yml -f docker-compose.db.dev.yml up -d --wait
 #
 # Production / full stack:

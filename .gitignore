@@ -27,3 +27,6 @@ htmlcov/
 
 # Local scratch
 other/
+
+# Bruno secrets (if added)
+integration_tests/.env

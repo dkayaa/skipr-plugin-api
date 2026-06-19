@@ -1,0 +1,63 @@
+meta {
+  name: Poll timestamps
+  type: http
+  seq: 2
+  tags: [
+    e2e
+  ]
+}
+
+get {
+  url: {{baseUrl}}/api/v2/timestamps
+}
+
+params:query {
+  link: {{testVideoUrl}}
+}
+
+script:post-response {
+  const maxAttempts = parseInt(bru.getEnvVar("pollMaxAttempts") || "60", 10);
+  const delayMs = parseInt(bru.getEnvVar("pollDelayMs") || "5000", 10);
+  let attempt = parseInt(bru.getVar("pollAttempt") || "0", 10);
+
+  if (res.body.status === "pending" && attempt < maxAttempts) {
+    attempt += 1;
+    bru.setVar("pollAttempt", attempt);
+    await bru.sleep(delayMs);
+    bru.setNextRequest("Poll timestamps");
+    return;
+  }
+
+  bru.deleteVar("pollAttempt");
+}
+
+tests {
+  test("analysis finishes", function() {
+    expect(res.body.status).to.be.oneOf(["ready", "failed"]);
+  });
+
+  test("returns 200 when finished", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("ready response has intervals array", function() {
+    if (res.body.status !== "ready") {
+      return;
+    }
+    expect(res.body.intervals).to.be.an("array");
+    if (res.body.intervals.length > 0) {
+      const interval = res.body.intervals[0];
+      expect(interval).to.have.property("id");
+      expect(interval).to.have.property("start_time");
+      expect(interval).to.have.property("end_time");
+      expect(interval).to.have.property("orgs");
+    }
+  });
+
+  test("failed response has error", function() {
+    if (res.body.status !== "failed") {
+      return;
+    }
+    expect(res.body).to.have.property("error");
+  });
+}

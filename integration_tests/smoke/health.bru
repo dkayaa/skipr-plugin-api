@@ -1,0 +1,22 @@
+meta {
+  name: Health
+  type: http
+  seq: 1
+  tags: [
+    smoke
+  ]
+}
+
+get {
+  url: {{baseUrl}}/health
+}
+
+tests {
+  test("returns 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("reports ok", function() {
+    expect(res.body.status).to.equal("ok");
+  });
+}

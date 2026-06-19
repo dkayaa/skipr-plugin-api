@@ -13,8 +13,8 @@ Local development needs the following:
 
 | Requirement | Used for |
 |-------------|----------|
-| **Docker** + **Docker Compose v2** (`docker compose`) | MySQL in both setups; full stack runs app + DB in containers |
-| **Python 3.11** | Native app path only (`./run.sh` creates a venv and installs deps) |
+| **Docker** + **Docker Compose v2** (`docker compose`) | Dev/prod stacks (`./run.sh api-dev`, `api-prod`) |
+| **Python 3.11** | `./run.sh unit-tests` only (creates `server/.venv`) |
 
 Install Docker from [docker.com](https://docs.docker.com/get-docker/) or your package manager. Verify Compose v2 with `docker compose version` (not the legacy `docker-compose` hyphenated command).
 
@@ -22,10 +22,17 @@ Clone the repo and copy `server/.env.example` to `server/.env` before either set
 
 ## Local Setup
 
-Start the API locally using one of these paths:
+Copy `server/.env.example` to `server/.env`, then use `./run.sh`:
 
-- **Native app** (DB in Docker, app on host): `cd server && pip install -r requirements.txt && ./run.sh` — app at http://127.0.0.1:8090
-- **Full stack in Docker**: `cd server && docker compose -f docker-compose.db.yml -f docker-compose.db.dev.yml -f docker-compose.yml -f docker-compose.dev.yml up -d --build`
+| Command | Description |
+|---------|-------------|
+| `./run.sh api-dev` | Dev stack in Docker (db + app on http://127.0.0.1:8090) |
+| `./run.sh api-dev --clear-volumes` | Dev stack with fresh DB volume |
+| `./run.sh api-prod` | Prod stack in Docker (db + app + caddy) |
+| `./run.sh unit-tests` | Python unit tests (`tests/`) |
+| `./run.sh integration-tests` | Bruno smoke tests (API must be running) |
+
+`./run.sh --help` for all options.
 
 For the browser extension, see the [skipr-plugin](https://github.com/dkayaa/skipr-plugin-browser) repo.
 

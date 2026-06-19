@@ -3,7 +3,7 @@
 # Full stack in Docker:
 #   docker compose -f docker-compose.db.yml -f docker-compose.db.dev.yml -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 #
-# DB only (native app via run.sh):
+# DB only:
 #   docker compose -f docker-compose.db.yml -f docker-compose.db.dev.yml up -d --wait
 
 services:
