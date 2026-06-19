@@ -28,6 +28,7 @@ Commands:
   api-dev             Start dev stack (db + app on localhost:8090)
   api-prod            Start prod stack (db + app + caddy)
   unit-tests          Run Python unit tests (tests/)
+  install-dev         Install runtime + dev deps into server/.venv
   integration-tests   Run Bruno integration tests (integration_tests/)
   mypy                Run mypy static type checks
   autopep8-check      Fail if Python files need autopep8 formatting
@@ -108,8 +109,17 @@ ensure_venv() {
 
   # shellcheck disable=SC1091
   source "${venv_dir}/bin/activate"
+
+  if [[ "${SKIP_PIP_INSTALL:-}" == "1" ]]; then
+    return
+  fi
+
   echo "Installing dependencies..."
   pip install -q -e "${ROOT_DIR}[dev]"
+}
+
+install_dev_deps() {
+  ensure_venv
 }
 
 run_unit_tests() {
@@ -223,6 +233,9 @@ case "${COMMAND}" in
     ;;
   unit-tests)
     run_unit_tests
+    ;;
+  install-dev)
+    install_dev_deps
     ;;
   integration-tests)
     run_integration_tests

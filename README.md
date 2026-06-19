@@ -35,10 +35,10 @@ Copy `server/.env.example` to `server/.env` before starting a stack.
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `main`:
 
-- autopep8
-- mypy
-- unit tests
-- Bruno integration smoke tests (Docker stack + `/health` + `/api/v2/timestamps` validation)
+- **python** job (one venv install): autopep8 → mypy → unit tests
+- **integration tests**: Docker stack + Bruno smoke tests
+
+Python deps are cached two ways: pip download cache (`setup-python`) and restored `server/.venv` when `pyproject.toml` is unchanged.
 
 ## Production deployment
 
