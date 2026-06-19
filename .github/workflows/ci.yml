@@ -51,6 +51,9 @@ jobs:
           python-version: "3.11"
           cache: pip
           cache-dependency-path: server/requirements.txt
+          
+      - name: Prepare environment
+        run: cp server/.env.example server/.env
 
       - name: Run unit tests
         run: ./run.sh unit-tests
